@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محول الصوت إلى نص</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0"
+  }
+}
+</script>
+</head>
+<body>
+    <main>
+        <div class="lang-switcher">
+            <button id="lang-en-btn" aria-label="Switch to English">EN</button>
+            <button id="lang-ar-btn" class="active" aria-label="التحويل إلى العربية">AR</button>
+        </div>
+
+        <div id="loader" class="hidden">
+            <div class="spinner"></div>
+            <p data-translate-key="loaderText">جاري تحويل الصوت...</p>
+        </div>
+
+        <header>
+            <h1 data-translate-key="title">محول الصوت إلى نص</h1>
+            <p data-translate-key="subtitle">سجل، ارفع، أو أدخل رابطًا لنسخ الصوت باللغة الإنجليزية أو العربية.</p>
+        </header>
+
+        <section class="controls" aria-labelledby="controls-heading">
+            <h2 id="controls-heading" class="sr-only" data-translate-key="controlsLabel">عناصر التحكم</h2>
+            <div class="control-group">
+                <label for="language-select" data-translate-key="languageLabel">اللغة:</label>
+                <select id="language-select">
+                    <option value="English">English</option>
+                    <option value="Arabic">العربية</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="record-btn" aria-label="بدء التسجيل">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                    <span data-translate-key="record">تسجيل</span>
+                </button>
+                <input type="file" id="upload-input" accept="audio/*" class="sr-only">
+                <label for="upload-input" class="button" role="button" tabindex="0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    <span data-translate-key="upload">رفع ملف</span>
+                </label>
+            </div>
+             <div class="url-input-group">
+                <input type="url" id="url-input" placeholder="أدخل رابط صوتي أو يوتيوب هنا..." aria-label="رابط الملف الصوتي" data-translate-key="urlPlaceholder">
+                <button id="url-btn" class="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+                    <span data-translate-key="urlButton">تحويل من رابط</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="output" aria-labelledby="output-heading">
+            <h2 id="output-heading" class="sr-only" data-translate-key="outputTextLabel">النص المكتوب</h2>
+            <div class="textarea-container">
+                <textarea id="transcribed-text" placeholder="سيظهر النص المكتوب هنا..." readonly aria-live="polite" data-translate-key="textareaPlaceholder"></textarea>
+                <div class="actions">
+                     <button id="copy-btn" aria-label="نسخ النص">
+                         <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                         <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                    <button id="export-btn" aria-label="تصدير النص كملف">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>

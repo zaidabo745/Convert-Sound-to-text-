@@ -1,0 +1,7 @@
+{
+  "name": "Audio to Text Converter",
+  "description": "A web application to convert audio to text using recording or file upload, supporting English and Arabic.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
